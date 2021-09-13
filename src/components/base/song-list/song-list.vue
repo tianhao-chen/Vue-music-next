@@ -6,7 +6,7 @@
         :key="song.id">
             <div class="content">
                 <h2 class="name">{{song.name}}</h2>
-                <p class="desc">{{getDesc(song)}}</p>
+                <p class="description">{{getDescrip(song)}}</p>
             </div>
         </li>
     </ul>
@@ -14,18 +14,19 @@
 
 <script>
 export default {
-    name:'song-list',
-    props:{
-        songs:{
-            type:Array,
+    name: 'song-list',
+    props: {
+        songs: {
+            type: Array,
             default() {
                 return []
             }
         }
     },
     methods: {
-        getDesc(song) {
-            return `${song.singer}·${song.album}`
+        // 描述=歌手名称+专辑名
+        getDescrip(song) {
+            return `${song.singer}-《 ${song.album} 》`
         }
     }
 
@@ -35,6 +36,7 @@ export default {
 <style lang="scss" scoped>
 .song-list {
     .item {
+        // flex布局实现自适应
         display: flex;
         align-items: center;
         box-sizing: border-box;
@@ -48,7 +50,7 @@ export default {
                 @include no-wrap();
                 color: $color-text
             }
-            .desc {
+            .description {
                 @include no-wrap();
                 margin-top: 4px;
                 color: $color-text-d;

@@ -5,45 +5,63 @@
     </div>
     <h1 class="title">{{ title }}</h1>
     <div
-    class="bg-imgae"
-    :style="bgImageStyle">
+    class="bg-image"
+    :style="bgImageStyle"
+    ref="bgImage">
         <div
         class="filter"
         ></div>
     </div>
-    <scroll class="list">
+    <scroll
+    class="list"
+    :style="scrollStyle">
         <div class ="song-list-wrapper">
-            <song-list :songs="song"></song-list>
+            <song-list :songs="songs"></song-list>
         </div>
     </scroll>
 </div>
 </template>
 
-
 <script>
 import Scroll from '../base/scroll/scroll.vue'
-import SongList from '@components/base/song-list/song-list'
+import SongList from '@/components/base/song-list/song-list'
+
 export default {
   components: {
       Scroll,
       SongList
    },
+   // 接收3个props：songs歌曲列表，title显示标题，pic背景图片
     props: {
         songs: {
             type: Array,
             default() {
-                retrun []
+                return []
             }
         },
         title: String,
         pic: String
+    },
+    data() {
+        return {
+            imageHeight: 0
+        }
     },
     computed: {
         bgImageStyle() {
             return {
                 backgroundImage: `url(${this.pic})`
             }
+        },
+        scrollStyle() {
+            return {
+                top: `${this.imageHeight}px`
+            }
         }
+    },
+    // 拿到图片高度的时机
+    mounted() {
+        this.imageHeight = this.$refs.bgImage.clientHeight
     }
 }
 </script>
@@ -80,7 +98,8 @@ export default {
     }
     .bg-image {
         position:relative;
-        width: 100%;
+        height:0;
+        padding-top:70%;
         transform-origin: top;
         background-size: cover;
         .filter {
