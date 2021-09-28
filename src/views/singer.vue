@@ -4,13 +4,21 @@
         :data = "singers"
         @select="selectSinger"
         ></index-list>
-        <router-view :singer="selectedSinger"></router-view>
+        <router-view v-slot="{ Component }">
+            <transition appear name="slide">
+                <component :is="Component" :singer="selectedSinger"/>
+            </transition>
+        </router-view>
     </div>
 </template>
 
 <script>
     import { getSingerList } from '@/service/singer'
     import IndexList from '@/components/base/index-list/index-list'
+    import storage from 'good-storage'
+    // 不加花括号的话，需要用export default
+    import { SINGER_KEY } from '@/assets/js/constants'
+
     export default {
     name: 'singer',
     components: {
@@ -30,10 +38,15 @@
     methods: {
         selectSinger(item) {
             this.selectedSinger = item
+            // 缓存选中的singer
+            this.cacheSinger(item)
             // 路由跳转
             this.$router.push({
                 path: `/singer/${item.mid}`
             })
+        },
+        cacheSinger(singer) {
+            storage.session.set(SINGER_KEY, singer)
         }
     }
 }
