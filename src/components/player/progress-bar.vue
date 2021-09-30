@@ -1,8 +1,14 @@
 <template>
-    <div class="progress-bar">
+    <div class="progress-bar"
+    @click="onClick">
         <div class="bar-inner">
-            <div class="progress" :style="progressStyle"></div>
-            <div class="progress-btn-wrapper" :style="btnStyle">
+            <div class="progress" :style="progressStyle"
+            ref="progress"></div>
+            <div class="progress-btn-wrapper" :style="btnStyle"
+            @touchstart.prevent = "onTouchStart"
+            @touchmove.prevent = "onTouchMove"
+            @touchend.prevent = "onTouchEnd"
+            >
                 <div class="progress-btn"></div>
             </div>
         </div>
@@ -11,21 +17,24 @@
 
 <script>
 const progressBtnWidth = 16
-
+// options api
 export default {
     name: 'progress-bar',
+    emits: ['progress-changing', 'progress-changed'],
     props: {
+        // 接受progress进度
         progress: {
             type: Number,
             default: 0
         }
     },
     data() {
+        // 宽度通过offset来定义
         return {
             offset: 0
         }
     },
-    computed:{
+    computed: {
         progressStyle() {
             return `width: ${this.offset}px`
         },
@@ -35,9 +44,43 @@ export default {
 
     },
     watch: {
+        // watch 的函数名为监听的变量名，这里是progress，可以传入newVal和oldVal两个参数
         progress(newProgress) {
+            // 监听的对象也自然可以找到他对应的el，变化时组件已经渲染了
             const barWidth = this.$el.clientWidth - progressBtnWidth
             this.offset = barWidth * newProgress
+        }
+    },
+    created() {
+        // 共享变量而并不需要观测变化，因此放在created函数中，data中都是响应式的，会造成性能浪费
+        this.touch = {}
+    },
+    methods: {
+        onTouchStart(e) {
+            this.touch.x1 = e.touches[0].pageX
+            // 进度条初始宽度
+            this.touch.beginWidth = this.$refs.progress.clientWidth
+        },
+        onTouchMove(e) {
+            const delta = e.touches[0].pageX - this.touch.x1
+            const tempWidth = this.touch.beginWidth + delta
+            const barWidth = this.$el.clientWidth - progressBtnWidth
+            const progress = Math.min(1, Math.max(tempWidth / barWidth, 0))
+            this.offset = barWidth * progress
+            this.$emit('progress-changing', progress)
+        },
+        onTouchEnd() {
+            const barWidth = this.$el.clientWidth - progressBtnWidth
+            const progress = this.$refs.progress.clientWidth / barWidth
+            this.$emit('progress-changed', progress)
+        },
+        onClick(e) {
+            const rect = this.$el.getBoundingClientRect()
+            // rect.left = 进度条开始位置
+            const offsetWidth = e.pageX - rect.left
+            const barWidth = this.$el.clientWidth - progressBtnWidth
+            const progress = offsetWidth / barWidth
+            this.$emit('progress-changed', progress)
         }
     }
 }

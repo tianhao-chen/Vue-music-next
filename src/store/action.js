@@ -31,9 +31,6 @@ export function changeMode({ commit, state, getters }, mode) {
     const index = state.playlist.findIndex((song) => {
         return song.id === currentId
     })
-    if (mode === PLAY_MODE.loop) {
-        commit('setPlaylist', new Array(state.sequenceList[index]))
-    }
 
     commit('setCurrentIndex', index)
     commit('setPlayMode', mode)
