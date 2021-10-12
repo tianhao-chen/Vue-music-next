@@ -1,57 +1,115 @@
 <template>
-    <div class="player">
-        <div
-        class="normal-player"
-        v-show="fullScreen">
-            <template v-if="currentSong">
-                <div class="background">
-                    <img :src="currentSong.pic">
-                </div>
-                <div class="top">
-                    <div
-                    class="back"
-                    @click="goBack">
-                        <i class="icon-back"></i>
+    <div class="player" v-show="playlist.length">
+        <transition
+        name="normal"
+        @enter="enter"
+        @after-enter="afterEnter"
+        @leave = "leave"
+        @after-leave ="afterLeave">
+            <div
+            class="normal-player"
+            v-show="fullScreen">
+                <template v-if="currentSong">
+                    <div class="background">
+                        <img :src="currentSong.pic">
                     </div>
-                    <h1 class="title">{{currentSong.name}}</h1>
-                    <h2 class="subtitle">{{currentSong.singer}}</h2>
-                </div>
-                <div class="bottom">
-                    <div class="progress-wrapper">
-                        <span class="time time-l">{{formatTime(currentTime)}}</span>
-                        <div class="progress-bar-wrapper">
-                            <progress-bar
-                            :progress="progress"
-                            @progress-changing="onProgressChanging"
-                            @progress-changed="onProgressChanged"
-                            ></progress-bar>
-                        </div>
-                        <span class="time time-r">{{formatTime(currentSong.duration)}}</span>
-                    </div>
-                    <div class="operators">
-                        <div class="icon i-left" >
-                            <i
-                            @click="changeMode"
-                            :class="modeIcon"></i>
-                        </div>
-                        <div class="icon i-left" :class="disableCls">
-                            <i class="icon-prev"  @click="prev"></i>
-                        </div>
+                    <div class="top">
                         <div
-                        class="icon i-center" :class="disableCls">
-                            <i :class="playIcon" @click="togglePlay"></i>
+                        class="back"
+                        @click="goBack">
+                            <i class="icon-back"></i>
                         </div>
-                        <div class="icon i-right" :class="disableCls">
-                            <i class="icon-next" @click="next"></i>
+                        <h1 class="title">{{currentSong.name}}</h1>
+                        <h2 class="subtitle">{{currentSong.singer}}</h2>
+                    </div>
+                    <div class= "middle"
+                    @touchstart.prevent="onMiddleTouchStart"
+                    @touchmove.prevent="onMiddleTouchMove"
+                    @touchend.prevent="onMiddleTouchEnd">
+                        <div class="middle-l"
+                        :style="middleLStyle">
+                            <div class="cd-wrapper"
+                            ref="cdWrapperRef">
+                                <div
+                                ref="cdRef"
+                                class="cd">
+                                    <img
+                                    class="image"
+                                    ref="cdImageRef"
+                                    :class="cdCls"
+                                    :src="currentSong.pic" >
+                                </div>
+                            </div>
+                            <div class="playing-lyric-wrapper">
+                                <div class="playing-lyric">{{playingLyric}}</div>
+                            </div>
                         </div>
-                        <div class="icon i-right" >
-                            <i @click="toggleFavorite(currentSong)"
-                            :class="getFavoriteIcon(currentSong)"></i>
+                        <scroll
+                        class="middle-r"
+                        ref="lyricScrollRef"
+                        :style="middleRStyle">
+                            <div class="lyric-wrapper">
+                                <div v-if="currentLyric" ref="lyricListRef">
+                                    <p
+                                    class="text"
+                                    :class="{'current': currentLineNum === index}"
+                                    v-for="(line, index) in currentLyric.lines"
+                                    :key="line.num"
+                                    >{{line.txt}}</p>
+                                </div>
+                                <div class="pure-music" v-show="pureMusicLyric">
+                                    <p>{{pureMusicLyric}}</p>
+                                </div>
+                            </div>
+                        </scroll>
+                    </div>
+                    <div class="bottom">
+                        <div class="dot-wrapper">
+                            <span class="dot"
+                            :class="{'active':currentShow==='cd'}"></span>
+                            <span class="dot"
+                            :class="{'active':currentShow==='lyric'}"></span>
+                        </div>
+                        <div class="progress-wrapper">
+                            <span class="time time-l">{{formatTime(currentTime)}}</span>
+                            <div class="progress-bar-wrapper">
+                                <progress-bar
+                                ref="barRef"
+                                :progress="progress"
+                                @progress-changing="onProgressChanging"
+                                @progress-changed="onProgressChanged"
+                                ></progress-bar>
+                            </div>
+                            <span class="time time-r">{{formatTime(currentSong.duration)}}</span>
+                        </div>
+                        <div class="operators">
+                            <div class="icon i-left" >
+                                <i
+                                @click="changeMode"
+                                :class="modeIcon"></i>
+                            </div>
+                            <div class="icon i-left" :class="disableCls">
+                                <i class="icon-prev"  @click="prev"></i>
+                            </div>
+                            <div
+                            class="icon i-center" :class="disableCls">
+                                <i :class="playIcon" @click="togglePlay"></i>
+                            </div>
+                            <div class="icon i-right" :class="disableCls">
+                                <i class="icon-next" @click="next"></i>
+                            </div>
+                            <div class="icon i-right" >
+                                <i @click="toggleFavorite(currentSong)"
+                                :class="getFavoriteIcon(currentSong)"></i>
+                            </div>
                         </div>
                     </div>
-                </div>
-            </template>
-        </div>
+                </template>
+            </div>
+        </transition>
+        <mini-player
+        :progress="progress"
+        :togglePlay="togglePlay"></mini-player>
         <audio
         ref="audioRef"
         @pause="pause"
@@ -67,22 +125,31 @@
 // 不能使用mapActions，因为这里逻辑比较复杂，计划使用composition API来写
 // 没有this来给我们读，所以使用useStore
 import { useStore } from 'vuex'
-import { computed, watch, ref } from 'vue'
+import { computed, watch, ref, nextTick } from 'vue'
 import useMode from './use-mode'
 import useFavorite from './use-favorite'
+import useCd from './use-cd'
+import useLyric from './use-lyric'
+import useMiddleInteractive from './use-middle-interactive'
+import useAnimation from './use-animation'
+import Scroll from '@/components/base/scroll/scroll'
 import ProgressBar from './progress-bar.vue'
+import MiniPlayer from './mini-player.vue'
 import { formatTime } from '@/assets/js/util'
 import { PLAY_MODE } from '@/assets/js/constants'
 
 export default {
     name: 'player',
     components: {
-        ProgressBar
+        ProgressBar,
+        Scroll,
+        MiniPlayer
     },
     // fullScreen以及currentSong的数据均在stroe中定义了方法
     setup() {
         // data
         const audioRef = ref(null)
+        const barRef = ref(null)
         const songReady = ref(false)
         const currentTime = ref(0)
         // 为了避免updatetime修改时间和拖动起冲突
@@ -101,6 +168,10 @@ export default {
         // hooks
         const { modeIcon, changeMode } = useMode()
         const { getFavoriteIcon, toggleFavorite } = useFavorite()
+        const { cdCls, cdRef, cdImageRef } = useCd()
+        const { currentLyric, currentLineNum, playLyric, stopLyric, lyricScrollRef, lyricListRef, pureMusicLyric, playingLyric } = useLyric(songReady, currentTime)
+        const { currentShow, middleRStyle, middleLStyle, onMiddleTouchStart, onMiddleTouchMove, onMiddleTouchEnd } = useMiddleInteractive()
+        const { cdWrapperRef, enter, afterEnter, leave, afterLeave } = useAnimation()
 
         // computed 因为playing是一个计算属性，需要.value获取到值
         const playIcon = computed(() => {
@@ -134,7 +205,21 @@ export default {
                 return
             }
             const audioEl = audioRef.value
-            playing.value ? audioEl.play() : audioEl.pause()
+            if (newPlaying) {
+                audioEl.play()
+                playLyric()
+            } else {
+            audioEl.pause()
+            stopLyric()
+            }
+        })
+        // set progress bar change with fullscreen
+        watch(fullScreen, async (newFullScreen) => {
+            if (newFullScreen) {
+                // 在vue中访问数据依赖的dom需要nexttick后才能拿到想要的dom
+                await nextTick()
+                barRef.value.setOffset(progress.value)
+            }
         })
 
         // methods
@@ -202,6 +287,7 @@ export default {
                 return
             }
             songReady.value = true
+            playLyric()
         }
         // 防止一首歌有问题而无法切换的问题
         function error() {
@@ -232,6 +318,10 @@ export default {
         function onProgressChanging(progress) {
             progressChanging = true
             currentTime.value = currentSong.value.duration * progress
+            // 同步到currentTime当前位置
+            playLyric()
+            // 停住
+            stopLyric()
         }
         function onProgressChanged(progress) {
             progressChanging = false
@@ -239,8 +329,12 @@ export default {
             if (!playing.value) {
                 store.commit('setPlayingState', true)
             }
+            // 同步到currentTime当前位置
+            playLyric()
         }
         return {
+            playlist,
+            barRef,
             audioRef,
             disableCls,
             fullScreen,
@@ -266,7 +360,31 @@ export default {
             formatTime,
             onProgressChanging,
             onProgressChanged,
-            end
+            end,
+            // cd
+            cdCls,
+            cdRef,
+            cdImageRef,
+            playingLyric,
+            // lyric
+            currentLyric,
+            currentLineNum,
+            lyricScrollRef,
+            lyricListRef,
+            pureMusicLyric,
+            // lyric-cd interactive
+            currentShow,
+            middleRStyle,
+            middleLStyle,
+            onMiddleTouchStart,
+            onMiddleTouchMove,
+            onMiddleTouchEnd,
+            // animation
+            cdWrapperRef,
+            enter,
+            afterEnter,
+            leave,
+            afterLeave
         }
     }
 }
@@ -330,10 +448,110 @@ export default {
                 color: $color-text;
             }
         }
+        .middle {
+            position: fixed;
+            width: 100%;
+            top: 80px;
+            bottom: 170px;
+            white-space: nowrap;
+            font-size: 0;
+            .middle-l {
+                display: inline-block;
+                vertical-align: top;
+                position: relative;
+                width: 100%;
+                height: 0;
+                // 百分比基于父元素宽度
+                padding-top: 80%;
+                .cd-wrapper {
+                    position: absolute;
+                    left: 10%;
+                    top: 0;
+                    width: 80%;
+                    box-sizing: border-box;
+                    height: 100%;
+                    .cd {
+                        width: 100%;
+                        height: 100%;
+                        border-radius: 50%;
+                        img {
+                            position: absolute;
+                            left: 0;
+                            top: 0;
+                            width: 100%;
+                            height: 100%;
+                            box-sizing: border-box;
+                            border-radius: 50%;
+                            border: 10px solid rgba(255,255,255,0.1);
+                        }
+                        .playing {
+                            animation: rotate 20s linear infinite;
+                        }
+                    }
+                }
+                .playing-lyric-wrapper {
+                    width: 80%;
+                    margin: 30px auto 0 auto;
+                    overflow: hidden;
+                    text-align: center;
+                    .playing-lyric {
+                        height: 20px;
+                        line-height: 20px;
+                        font-size: $font-size-medium;
+                        color: $color-text-l;
+                    }
+                }
+            }
+            .middle-r {
+                display: inline-block;
+                vertical-align: top;
+                width: 100%;
+                height: 100%;
+                overflow: hidden;
+                .lyric-wrapper {
+                    width: 80%;
+                    margin: 0 auto;
+                    overflow: hidden;
+                    text-align: center;
+                    .text {
+                        line-height: 32px;
+                        color: $color-text-l;
+                        font-size: $font-size-medium;
+                        &.current {
+                            color: $color-text;
+                        }
+                    }
+                    .pure-music {
+                    padding-top: 50%;
+                    line-height: 32px;
+                    color: $color-text-l;
+                    font-size: $font-size-medium;
+                    }
+                }
+            }
+        }
         .bottom {
             position: absolute;
             bottom: 50px;
             width: 100%;
+            .dot-wrapper {
+                text-align: center;
+                font-size: 0;
+                .dot {
+                    display: inline-block;
+                    vertical-align: middle;
+                    margin: 0 4px;
+                    width: 8px;
+                    height: 8px;
+                    border-radius: 50%;
+                    background: $color-text-l;
+                    &.active {
+                        width: 20px;
+                        border-radius: 5px;
+                        background: $color-text-ll;
+                    }
+                }
+            }
             .progress-wrapper {
                 display: flex;
                 align-items: center;
@@ -387,6 +605,22 @@ export default {
                         color: $color-sub-theme;
                     }
                 }
+            }
+        }
+        // transition animation for normal player
+        &.normal-enter-active, &.normal-leave-active {
+            transition: all .6s;
+            .top, .bottom {
+                transition: all .6s cubic-bezier(0.45, 0, 0.55);
+            }
+        }
+        &.normal-enter-from, &.normal-leave-to {
+            opacity: 0;
+            .top {
+                transform: translate3d(0, -100px, 0);
+            }
+            .bottom {
+                transform: translate3d(0, 100px, 0);
             }
         }
     }

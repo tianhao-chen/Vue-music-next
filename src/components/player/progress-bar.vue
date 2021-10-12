@@ -46,9 +46,7 @@ export default {
     watch: {
         // watch 的函数名为监听的变量名，这里是progress，可以传入newVal和oldVal两个参数
         progress(newProgress) {
-            // 监听的对象也自然可以找到他对应的el，变化时组件已经渲染了
-            const barWidth = this.$el.clientWidth - progressBtnWidth
-            this.offset = barWidth * newProgress
+            this.setOffset(newProgress)
         }
     },
     created() {
@@ -81,6 +79,11 @@ export default {
             const barWidth = this.$el.clientWidth - progressBtnWidth
             const progress = offsetWidth / barWidth
             this.$emit('progress-changed', progress)
+        },
+        setOffset(progress) {
+            // 监听的对象也自然可以找到他对应的el，变化时组件已经渲染了
+            const barWidth = this.$el.clientWidth - progressBtnWidth
+            this.offset = barWidth * progress
         }
     }
 }
