@@ -2,7 +2,7 @@
     <div ref="rootRef">
         <slot></slot>
     </div>
-</template>>
+</template>
 
 <script>
 import useScroll from './use-scroll'
@@ -31,4 +31,4 @@ export default {
         }
     }
 }
-</script>>
+</script>

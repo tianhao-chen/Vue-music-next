@@ -13,7 +13,6 @@
                     :class="cdCls">
                 </div>
             </div>
-
             <div class="slider-wrapper"
             ref="sliderWrapperRef">
                 <div class="slider-group">
@@ -25,7 +24,6 @@
                     </div>
                 </div>
             </div>
-
             <div class="control">
                 <progress-circle
                 :radius="32"
@@ -37,21 +35,28 @@
                 ></i>
                 </progress-circle>
             </div>
+            <div class="control"
+            @click.stop="showPlaylist">
+                <i class="icon-playlist"></i>
+            </div>
+            <Playlist ref="PlaylistRef"></Playlist>
         </div>
     </transition>
 </template>
 
 <script>
 import { useStore } from 'vuex'
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import useCd from './use-cd'
 import useMiniSlider from './use-mini-slider'
 import ProgressCircle from './progress-circle.vue'
+import Playlist from './playlist.vue'
 
 export default {
     name: 'mini-player',
     components: {
-        ProgressCircle
+        ProgressCircle,
+        Playlist
     },
     props: {
         progress: {
@@ -62,6 +67,7 @@ export default {
         togglePlay: Function
     },
     setup(props) {
+        const PlaylistRef = ref(null)
         const store = useStore()
         const fullScreen = computed(() => store.state.fullScreen)
         const currentSong = computed(() => store.getters.currentSong)
@@ -76,8 +82,13 @@ export default {
         function showNormalPlayer() {
             store.commit('setFullScreen', true)
         }
+        function showPlaylist() {
+            PlaylistRef.value.show()
+        }
 
         return {
+            PlaylistRef,
+            showPlaylist,
             playlist,
             sliderWrapperRef,
             cdRef,
@@ -158,7 +169,13 @@ export default {
     .control {
         flex: 0 0 30px;
         width: 50px;
-        padding: 0 30px;
+        padding: 0 10px;
+        .icon-playlist {
+        position: relative;
+        top: -2px;
+        font-size: 28px;
+        color: $color-theme-d;
+        }
         .icon-mini {
             position: absolute;
             left: 0;
@@ -167,7 +184,6 @@ export default {
             font-size: 32px;
         }
     }
-
     &.mini-enter-active, &.mini-leave-active {
         transition: all 0.6s cubic-bezier(0.45, 0, 0.55, 1);
     }

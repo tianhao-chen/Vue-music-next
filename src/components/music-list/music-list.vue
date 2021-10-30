@@ -45,9 +45,9 @@
 </template>
 
 <script>
-import Scroll from '../base/scroll/scroll.vue'
+import Scroll from '../wrap-scroll'
 import SongList from '@/components/base/song-list/song-list'
-import { mapActions } from 'vuex'
+import { mapActions, mapState } from 'vuex'
 
 const RESERVED_HEIGHT = 40
 
@@ -114,8 +114,10 @@ export default {
             }
         },
         scrollStyle() {
+            const bottom = this.playlist.length ? '60px' : '0'
             return {
-                top: `${this.imageHeight}px`
+                top: `${this.imageHeight}px`,
+                bottom
             }
         },
         filterStyle() {
@@ -139,7 +141,10 @@ export default {
             return {
                 display
             }
-        }
+        },
+        ...mapState([
+            'playlist'
+        ])
     },
     // 拿到图片高度的时机:MOUNTED
     mounted() {

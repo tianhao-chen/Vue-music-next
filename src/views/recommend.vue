@@ -13,7 +13,8 @@
                         <li
                         class = "item"
                         v-for = "item in albums"
-                        :key = "item.id">
+                        :key = "item.id"
+                        @click="selectAlbum(item)">
                             <div class = "icon">
                                 <img width="60" height="60" v-lazy = "item.pic">
                             </div>
@@ -26,13 +27,20 @@
                 </div>
             </div>
         </scroll>
+        <router-view v-slot="{ Component }">
+            <transition appear name="slide">
+                <component :is="Component" :data="selectedAlbum"/>
+            </transition>
+        </router-view>
     </div>
 </template>
 
 <script>
     import { getRecommend } from '@/service/recommend'
     import Slider from '../components/base/slider/slider.vue'
-    import Scroll from '../components/base/scroll/scroll.vue'
+    import Scroll from '../components/wrap-scroll'
+    import { ALBUM_KEY } from '@/assets/js/constants'
+    import storage from 'good-storage'
 
     export default {
         name: 'recommend',
@@ -43,21 +51,34 @@
         data() {
             return {
                 sliders: [],
-                albums: []
+                albums: [],
+                selectedAlbum: null
             }
         },
         computed: {
             loading() {
                 return !this.sliders.length && !this.albums.length
             }
-
+        },
+        methods: {
+            selectAlbum(item) {
+            this.selectedAlbum = item
+            // 缓存选中的singer
+            this.cacheAlbum(item)
+            // 路由跳转
+            this.$router.push({
+                path: `/recommend/${item.id}`
+                })
+            },
+            cacheAlbum(item) {
+                storage.session.set(ALBUM_KEY, item)
+            }
         },
         async created() {
             const result = await getRecommend()
             this.sliders = result.sliders
             this.albums = result.albums
         }
-
     }
 </script>
 

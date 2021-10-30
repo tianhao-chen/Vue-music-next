@@ -3,8 +3,15 @@ import animations from 'create-keyframe-animation'
 
 export default function useAnimation() {
     const cdWrapperRef = ref(null)
+    let entering = false
+    let leaving = false
 
     function enter(el, done) {
+        // use the flag to check leaving and entering to avoid the mess while leave is not finished but enter is triggered again.
+        if (leaving) {
+            afterLeave()
+        }
+        entering = true
         const { x, y, scale } = getPosAndScale()
 
         const animation = {
@@ -31,9 +38,14 @@ export default function useAnimation() {
     function afterEnter() {
         animations.unregisterAnimation('move')
         cdWrapperRef.value.animation = ''
+        entering = false
     }
 
     function leave(el, done) {
+        if (entering) {
+            afterEnter()
+        }
+        leaving = true
         const { x, y, scale } = getPosAndScale()
         const cdWrapperEl = cdWrapperRef.value
 
@@ -51,6 +63,7 @@ export default function useAnimation() {
         const cdWrapperEl = cdWrapperRef.value
         cdWrapperEl.style.transition = ''
         cdWrapperEl.style.transform = ''
+        leaving = true
     }
 
     function getPosAndScale() {
@@ -62,6 +75,7 @@ export default function useAnimation() {
         const paddingTop = 80
         const width = window.innerWidth * 0.8
         // mini to cd: x & y
+        // origin of screen is at the top-left corner as (0, 0). so x should be negative
         const x = -(window.innerWidth / 2 - miniPaddingLeft)
         const y = window.innerHeight - paddingTop - width / 2 - miniPaddingBottom
 

@@ -82,7 +82,7 @@
                             </div>
                             <span class="time time-r">{{formatTime(currentSong.duration)}}</span>
                         </div>
-                        <div class="operators">
+                        <div class="operators" @click.stop>
                             <div class="icon i-left" >
                                 <i
                                 @click="changeMode"
@@ -253,10 +253,6 @@ export default {
                     index = list.length - 1
                 }
                 store.commit('setCurrentIndex', index)
-                // 暂停状态，点了前进后退之后开始播放
-                if (!playing.value) {
-                    store.commit('setPlayingState', true)
-                }
             }
         }
         // 后退
@@ -275,10 +271,6 @@ export default {
                     index = 0
                 }
                 store.commit('setCurrentIndex', index)
-                // 暂停状态，点了前进后退之后开始播放
-                if (!playing.value) {
-                    store.commit('setPlayingState', true)
-                }
             }
         }
         // canplay回调函数，歌曲准备好时触发，返回true
