@@ -33,7 +33,8 @@ export default function createDetailComponent(name, key, fetch) {
                     // 如果没有就get获取前面set的SINGERKEY
                     const cachedData = storage.session.get(key)
                     // 是否有缓存+缓存mid是否匹配来给ret
-                    if (cachedData && cachedData.mid === this.$route.params.id) {
+                    // num + '' --> string
+                    if (cachedData && (cachedData.mid || cachedData.id + '') === this.$route.params.id) {
                         ret = cachedData
                     }
                 }
@@ -46,7 +47,7 @@ export default function createDetailComponent(name, key, fetch) {
             },
             title() {
                 const data = this.computedData
-                return data && data.name
+                return data && (data.name || data.title)
             }
         },
         async created() {

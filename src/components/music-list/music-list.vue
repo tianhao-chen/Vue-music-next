@@ -37,7 +37,8 @@
         <div class ="song-list-wrapper">
             <song-list
             :songs="songs"
-            @select="selectItem">
+            @select="selectItem"
+            :rank="rank">
             </song-list>
         </div>
     </scroll>
@@ -70,7 +71,8 @@ export default {
         noResultText: {
             type: String,
             default: '出错啦'
-        }
+        },
+        rank: Boolean
     },
     data() {
         return {
