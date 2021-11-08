@@ -132,6 +132,7 @@ import useCd from './use-cd'
 import useLyric from './use-lyric'
 import useMiddleInteractive from './use-middle-interactive'
 import useAnimation from './use-animation'
+import usePlayHistory from './use-play-history'
 import Scroll from '@/components/base/scroll/scroll'
 import ProgressBar from './progress-bar.vue'
 import MiniPlayer from './mini-player.vue'
@@ -172,6 +173,7 @@ export default {
         const { currentLyric, currentLineNum, playLyric, stopLyric, lyricScrollRef, lyricListRef, pureMusicLyric, playingLyric } = useLyric(songReady, currentTime)
         const { currentShow, middleRStyle, middleLStyle, onMiddleTouchStart, onMiddleTouchMove, onMiddleTouchEnd } = useMiddleInteractive()
         const { cdWrapperRef, enter, afterEnter, leave, afterLeave } = useAnimation()
+        const { savePlay } = usePlayHistory()
 
         // computed 因为playing是一个计算属性，需要.value获取到值
         const playIcon = computed(() => {
@@ -280,6 +282,7 @@ export default {
             }
             songReady.value = true
             playLyric()
+            savePlay(currentSong.value)
         }
         // 防止一首歌有问题而无法切换的问题
         function error() {

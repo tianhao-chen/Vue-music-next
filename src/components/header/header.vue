@@ -3,6 +3,9 @@
         <span class = "icon"></span>
         <h1 class="text">lala Music </h1>
     </div>
+    <router-link class="mine" to="/user">
+        <i class="icon-mine"></i>
+    </router-link>
 </template>
 
 <script>
@@ -34,5 +37,16 @@
             line-height:44px;
             font-size: $font-size-large;
         }
+    }
+    .mine {
+      position: absolute;
+      top: 0;
+      right: 0;
+      .icon-mine {
+        display: block;
+        padding: 12px;
+        font-size: $font-size-large-x;
+        color: $color-theme;
+      }
     }
 </style>

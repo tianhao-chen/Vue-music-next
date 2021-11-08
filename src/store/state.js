@@ -1,4 +1,4 @@
-import { PLAY_MODE, FAVORITE_KEY } from '@/assets/js/constants'
+import { PLAY_MODE, SEARCH_KEY } from '@/assets/js/constants'
 import { load } from '@/assets/js/array-store'
 
 // 播放器的初始状态
@@ -10,7 +10,9 @@ const state = {
     currentIndex: 0,
     fullScreen: false,
     // 初始化: 加载本地数据
-    favoriteList: load(FAVORITE_KEY)
+    favoriteList: [],
+    searchHistory: load(SEARCH_KEY),
+    playHistory: []
 }
 
 export default state
