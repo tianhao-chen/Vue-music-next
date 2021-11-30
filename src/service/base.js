@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 const ERR_OK = 0
-const baseURL = process.env.NODE_ENV === 'production' ? 'http://139.224.53.76:3000/music' : '/'
+const baseURL = process.env.NODE_ENV === 'production' ? 'http://tiantian-happy.xyz/vue-music' : '/'
 axios.defaults.baseURL = baseURL
 
 export function get(url, params) {
