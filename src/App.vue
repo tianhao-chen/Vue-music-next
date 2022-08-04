@@ -16,6 +16,9 @@
     </transition>
   </router-view>
   <player></player>
+  <div id="master">
+    <a href="https://beian.miit.gov.cn/" target="_blank">沪ICP备2021034236号-1</a>
+  </div>
 </template>
 
 <script>
@@ -45,3 +48,13 @@
   }
 
 </script>
+
+<style type="text/css">
+  #master {
+    position: absolute;
+    width:100%;
+    bottom:0;
+    text-align: center;
+    font-size: 9pt;
+  }
+</style>
